@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI
 from .config import (
     AppSettings,
@@ -6,12 +7,20 @@ from .config import (
 )
 from .db.database import async_engine
 from .db.models import Document
+from .middleware import RequestLoggingMiddleware
 
 
 async def init_db():
     """Initialize database tables."""
     async with async_engine.begin() as conn:
         await conn.run_sync(Document.metadata.create_all)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for FastAPI application."""
+    await init_db()
+    yield
 
 
 def create_application(
@@ -22,11 +31,10 @@ def create_application(
         EnvironmentSettings
     )
 ):
-    application = FastAPI()
-    application.include_router(router)
+    application = FastAPI(lifespan=lifespan)
 
-    @application.on_event("startup")
-    async def startup_event():
-        await init_db()
+    application.add_middleware(RequestLoggingMiddleware)
+
+    application.include_router(router)
 
     return application
