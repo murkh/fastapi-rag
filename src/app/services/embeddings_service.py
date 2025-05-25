@@ -3,6 +3,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import PGVector
 from langchain.schema import Document
 from ..core.config import settings
+from ..core.db import DATABASE_URL
 import numpy as np
 
 
@@ -24,6 +25,6 @@ class EmbeddingsService:
         """Get PGVector store for similarity search."""
         return PGVector(
             collection_name="documents",
-            connection_string=settings.DATABASE_URL,
+            connection_string=DATABASE_URL,
             embedding_function=self.embedding_model
         )
