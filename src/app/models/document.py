@@ -1,7 +1,7 @@
 from pgvector import Vector
 from sqlalchemy import Column, String
 
-from src.app.core.db.models import TimestampMixin, UUIDMixin
+from ..core.db.models import UUIDMixin, TimestampMixin
 
 
 class Document(UUIDMixin, TimestampMixin):
@@ -9,4 +9,4 @@ class Document(UUIDMixin, TimestampMixin):
     __tablename__ = "documents"
 
     content = Column(String, nullable=False)
-    embedding = Column(Vector(1536))
+    embedding = Column(Vector())

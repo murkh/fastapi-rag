@@ -25,7 +25,8 @@ async def upload_document(
     """Upload a document and store its chunks with embeddings."""
     content = await file.read()
     text = content.decode("utf-8")
-    await embeddings_service.load_and_store_embeddings(text, db)
+    pgvectorstore = embeddings_service.get_vector_store()
+    await embeddings_service.load_and_store_embeddings(text, pgvectorstore)
     return {"message": "Document processed successfully"}
 
 
