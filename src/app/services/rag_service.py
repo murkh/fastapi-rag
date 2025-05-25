@@ -1,6 +1,7 @@
 from typing import AsyncGenerator
 from langchain.llms import OpenAI
 from langchain.chains import RetrievalQA
+from sqlalchemy.ext.asyncio import AsyncSession
 from .embeddings_service import EmbeddingsService
 from ..core.config import settings
 
@@ -13,13 +14,14 @@ class RAGService:
             streaming=True
         )
 
-    def get_chain(self, top_k: int | None = 3) -> RetrievalQA:
+    async def get_chain(self, db: AsyncSession, top_k: int | None = 3) -> RetrievalQA:
         """Get RAG chain with vector store retriever.
 
         Args:
+            db: Database session
             top_k: Number of most relevant chunks to retrieve. Defaults to 3.
         """
-        vector_store = self.embeddings_service.get_vector_store()
+        vector_store = await self.embeddings_service.get_vector_store(db)
         retriever = vector_store.as_retriever(
             search_type="similarity",
             search_kwargs={"k": top_k}
@@ -29,14 +31,16 @@ class RAGService:
             retriever=retriever
         )
 
-    async def stream_response(self, question: str, top_k: int | None = 3) -> AsyncGenerator[str, None]:
+    async def stream_response(self, question: str, db: AsyncSession, top_k: int | None = 3) -> AsyncGenerator[str, None]:
         """Stream response chunks from the RAG chain.
 
         Args:
             question: The question to ask
+            db: Database session
             top_k: Number of most relevant chunks to retrieve. Defaults to 3.
         """
-        chain = self.get_chain(top_k=top_k)
+        chain = await self.get_chain(db, top_k=top_k)
         async for chunk in chain.astream(question):
-            if "answer" in chunk:
-                yield chunk["answer"]
+            if "result" in chunk:
+                print(chunk["result"])
+                yield chunk["result"]

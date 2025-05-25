@@ -25,14 +25,14 @@ async def upload_document(
     """Upload a document and store its chunks with embeddings."""
     content = await file.read()
     text = content.decode("utf-8")
-    pgvectorstore = embeddings_service.get_vector_store()
-    await embeddings_service.load_and_store_embeddings(text, pgvectorstore)
+    await embeddings_service.load_and_store_embeddings(text, db)
     return {"message": "Document processed successfully"}
 
 
 @router.post("/query")
 async def query(
     req: QueryRequest,
+    db: AsyncSession = Depends(async_get_db)
 ):
     """Query the RAG system with streaming response.
 
@@ -41,6 +41,6 @@ async def query(
             to limit the number of retrieved contexts
     """
     return StreamingResponse(
-        rag_service.stream_response(req.question, top_k=req.top_k),
+        rag_service.stream_response(req.question, db=db, top_k=req.top_k),
         media_type="text/plain"
     )
