@@ -3,8 +3,6 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import PGVector
 from langchain.schema import Document
 from ..core.config import settings
-import numpy as np
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -16,7 +14,6 @@ class EmbeddingsService:
             chunk_size=500, chunk_overlap=50)
         self._vector_store = None
 
-        # Construct regular PostgreSQL connection string
         self.connection_string = (
             f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
             f"@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
@@ -24,25 +21,16 @@ class EmbeddingsService:
 
     async def init_vector_store(self, db: AsyncSession):
         """Initialize vector store with vector extension."""
-        try:
-            await db.execute(text('CREATE EXTENSION IF NOT EXISTS vector;'))
-            await db.commit()
-        except Exception as e:
-            await db.rollback()
-            raise Exception(f"Failed to create vector extension: {e}")
-
         store = PGVector(
             collection_name="documents",
             connection_string=self.connection_string,
             embedding_function=self.embedding_model
         )
-
         try:
             store.create_collection()
         except Exception as e:
             if "already exists" not in str(e):
                 raise e
-
         return store
 
     async def load_and_store_embeddings(self, text: str, db: AsyncSession):
