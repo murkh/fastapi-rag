@@ -1,19 +1,12 @@
-from datetime import datetime
-from sqlalchemy import String, Text, DateTime, JSON
-from ..core.db.database import Base
-from sqlalchemy.orm import Mapped, mapped_column
+from pgvector import Vector
+from sqlalchemy import Column, String
+
+from src.app.core.db.models import TimestampMixin, UUIDMixin
 
 
-class DocumentRecord(Base):
+class Document(UUIDMixin, TimestampMixin):
+    """Document model for storing text chunks and their embeddings."""
     __tablename__ = "documents"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    metadata: Mapped[dict] = mapped_column(JSON, default={})
-    embedding: Mapped[str] = mapped_column(
-        "embedding", Text)
-    timestamp: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow)
-
-    def __repr__(self) -> str:
-        return f"<DocumentRecord(id='{self.id}', content='{self.content[:50]}...')>"
+    content = Column(String, nullable=False)
+    embedding = Column(Vector(1536))

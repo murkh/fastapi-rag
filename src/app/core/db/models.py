@@ -1,8 +1,6 @@
-
 from datetime import UTC, datetime
 import uuid as uuid_mod
 from sqlalchemy import Column, DateTime, text
-
 from sqlalchemy.dialects.postgresql import UUID
 
 

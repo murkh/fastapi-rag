@@ -42,7 +42,11 @@ class EnvironmentSettings(BaseSettings):
         "ENVIRONMENT", default="development")
 
 
-class Settings(AppSettings, PostgreSQLSettings, EnvironmentSettings):
+class OpenAISettings(BaseSettings):
+    OPENAI_API_KEY: str = config("OPENAI_API_KEY")
+
+
+class Settings(AppSettings, PostgreSQLSettings, EnvironmentSettings, OpenAISettings):
     pass
 
 
